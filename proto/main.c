@@ -28,15 +28,19 @@ void draw_boxes(float a1, float a2, float a3, float b1, float b2, float b3) {
     float near = 1.f, far = -5.0f, hw = 1.0f;
     float hh = (float)HEIGHT / WIDTH * hw;
 
-    float ends[4][3];
-    ends[0][0] = -hw;
-    ends[0][1] = hh;
-    ends[1][0] = hw;
-    ends[1][1] = hh;
-    ends[2][0] = hw;
-    ends[2][1] = -hh;
-    ends[3][0] = -hw;
-    ends[3][1] = -hh;
+    const GLfloat unit[] = {
+	-1, 1, 0,
+	1, 1, 0,
+	1, -1, 0,
+	-1, -1, 0
+    };
+    
+    float alpha = 0.5;
+    GLfloat colors[] = {
+	0, 0, 0, alpha,
+	0, 0, 0, alpha,
+	0, 0, 0, alpha,
+    };
 
     float a = 1.05;
     float k = log(2) / log(a);
@@ -47,20 +51,34 @@ void draw_boxes(float a1, float a2, float a3, float b1, float b2, float b3) {
 	z = (z+1)*a - 1;
 	++i;
 
-	for (j=0; j<4; j++) {
-	    ends[j][2] = near + (far - near) * z;
-	}
-	
 	float d1 = a1 + i/k*(b1 - a1);
 	float d2 = a2 + i/k*(b2 - a2);
 	float d3 = a3 + i/k*(b3 - a3);
 
-	glColor3f(d1, d2, d3);
+	colors[0] = colors[4] = colors[8] = d1;
+	colors[1] = colors[5] = colors[9] = d2;
+	colors[2] = colors[6] = colors[10] = d3;
+	
+	glPushMatrix();
+	glTranslatef(0, 0, near + (far - near) * z);
+	glScalef(hw, hh, 1);
+	glEnableClientState(GL_VERTEX_ARRAY);
+	glVertexPointer(3, GL_FLOAT, 0, unit);
+	glDrawArrays(GL_LINE_LOOP, 0, 4);	
+	glDisableClientState(GL_VERTEX_ARRAY);
+	glPopMatrix();
+	
+//	glEnableClientState(GL_COLOR_ARRAY);
+
+//	glColorPointer(3, GL_FLOAT, 0, colors);
+//	glDisableClientState(GL_COLOR_ARRAY);
+
+/*	glColor3f(d1, d2, d3);
 	glBegin(GL_LINE_LOOP);
 	for (j=0; j<4; j++) {
 	    glVertex3fv(ends[j]);
 	}
-	glEnd();
+	glEnd();*/
     }
 }
 
