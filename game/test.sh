@@ -1,5 +1,3 @@
 #!/bin/bash
 
-ndk-build -C jni &&
-ant debug &&
-adb install -d -r bin/honorsgame-debug.apk
+adb install -r bin/honorsgame-debug.apk
