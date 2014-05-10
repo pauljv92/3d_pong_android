@@ -11,17 +11,25 @@
 
 float player_x;
 float player_y;
+float enemy_x;
+float enemy_y;
 
-float player_target_x;
-float player_target_y;
+float real_player_x;
+float real_player_y;
+float real_enemy_x;
+float real_enemy_y;
 
-float comp_x;
-float comp_y;
+float ball_x;
+float ball_y;
+float ball_z;
 
-void init();
-void resize(int width, int height);
-void touch(float x, float y);
-void accelerometer(float x, float y, float z);
-void render(float dt);
+void view_init();
+void view_resize(int width, int height);
+void view_update(float dt);
+void view_render(float dt);
+void view_touch(float x, float y);
+
+void logic_init();
+void logic_update(float dt);
 
 #endif

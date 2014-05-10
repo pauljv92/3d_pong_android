@@ -7,23 +7,13 @@ import android.content.Context;
 import android.util.Log;
 import android.view.MotionEvent;
 
-import android.hardware.Sensor;
-import android.hardware.SensorEvent;
-import android.hardware.SensorEventListener;
-import android.hardware.SensorManager;
-
-public class MainActivity extends Activity implements SensorEventListener
+public class MainActivity extends Activity
 {
     private GLSurfaceView view;
-    private SensorManager sensorManager;
-    private Sensor accelerometer;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
 	super.onCreate(savedInstanceState);
-	
-	sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
-	accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR);
 
 	view = new GLSurfaceView(this);
 	view.setEGLContextClientVersion(1);
@@ -44,24 +34,11 @@ public class MainActivity extends Activity implements SensorEventListener
     protected void onPause() {
 	super.onPause();
 	view.onPause();
-	sensorManager.unregisterListener(this);
     }
 
     @Override
     protected void onResume() {
 	super.onResume();
 	view.onResume();
-	sensorManager.registerListener(this, accelerometer, 
-				       SensorManager.SENSOR_DELAY_NORMAL);
-    }
-
-    public void onAccuracyChanged(Sensor sensor, int accuracy) {
-	// ignore
-    }
-
-    public void onSensorChanged(SensorEvent event) {
-//	Log.i("hgame", "sensor: " + event.values[0] + " " + event.values[1] + " " + event.values[2]);
-	NativeGame.accelerometer(
-	    event.values[0], event.values[1], event.values[2]);
     }
 }

@@ -10,16 +10,22 @@
 int screen_width;
 int screen_height;
 
-void init() {
+float player_target_x;
+float player_target_y;
+
+float real_enemy_x;
+float real_enemy_y;
+
+void view_init() {
 }
 
-void resize(int w, int h) {
+void view_resize(int w, int h) {
     screen_width = w;
     screen_height = h;
     glViewport(0, 0, screen_width, screen_height);
 }
 
-void touch(float x, float y) {
+void view_touch(float x, float y) {
     float normx = (float)(x - screen_width/2) / (screen_width/2);
     float normy = -(float)(y - screen_height/2) / (screen_height/2);
 
@@ -37,12 +43,9 @@ void touch(float x, float y) {
     if (normy < -1) {
 	normy = -1;
     }
-
-    player_target_x = normx;
-    player_target_y = normy;
-}
-
-void accelerometer(float x, float y, float z) {
+    
+    player_x = normx;
+    player_y = normy;
 }
 
 void draw_ball(float x, float y, float z) {
@@ -140,32 +143,16 @@ void follow(float tx, float ty, float *x, float *y, float max, float a) {
     *y += oy * b;
 }
 
-int ball_dir = -1;
-float ball_pos = 0;
-
-void update(float dt) {
+void view_update(float dt) {
     float speed = 8;
-    follow(player_target_x, player_target_y, 
-	   &player_x, &player_y, speed * dt, 0.6);
+    follow(player_x, player_y,
+	   &real_player_x, &real_player_y, speed * dt, 0.6);
 
-    float compspeed = 3;
-    follow(-player_x, -player_y, &comp_x, &comp_y, 
-	   compspeed * dt, 0.6);
-
-    ball_pos += ball_dir * dt * 3;
-    if (ball_pos < -5) {
-	ball_dir = 1;
-    }
-    if (ball_pos > 0) {
-	ball_dir = -1;
-    }
-    LOGI("hgame", "ball_pos: %f, ball_dir: %d", ball_pos, ball_dir);
+    follow(enemy_x, enemy_y, &real_enemy_x, &real_enemy_y, 
+	   speed * dt, 0.6);
 }
 
-
-void render(float dt) {
-    update(dt);
-    
+void view_render(float dt) {
     glEnableClientState(GL_VERTEX_ARRAY);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
@@ -179,13 +166,13 @@ void render(float dt) {
     float ratio = (float)screen_height / screen_width;
 
     glColor4f(14.0/256, 50.0/256, 102.0/256, 1.0);
-    draw_player(comp_x, comp_y * ratio, -5.0);
+    draw_player(real_enemy_x, real_enemy_y * ratio, -5.0);
 
     glColor4f(1.0, 1.0, 1.0, 1.0);
-    draw_ball(0, 0, ball_pos);
+    draw_ball(ball_x, ball_y, ball_z);
     
     glColor4f(0.984, 0.414, 0.00, 0.75);
-    draw_player(player_x, player_y * ratio, 0);
+    draw_player(real_player_x, real_player_y * ratio, 0);
 
     glFlush();
 }
