@@ -1,7 +1,11 @@
 #include "game.h"
 
 void logic_init() {
-    
+    if (is_host) {
+	LOGI("honorsgame", "Am the host!\n");
+    } else {
+	LOGI("honorsgame", "Client: Got the ip address! %s\n", host_ip);
+    }
 }
 
 int ball_dir = -1;

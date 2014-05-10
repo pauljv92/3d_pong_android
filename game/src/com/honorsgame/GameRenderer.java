@@ -9,18 +9,31 @@ import javax.microedition.khronos.egl.EGLConfig;
 
 public class GameRenderer implements GLSurfaceView.Renderer
 {
+    boolean initialized;
     long lastTime = -1;
     int width;
     int height;
     
     public void onSurfaceCreated(GL10 gl, EGLConfig config) {
-	NativeGame.init();
+	initialized = false;
+    }
+
+    public void init(String host_ip) {
+	if (host_ip == null) {
+	    NativeGame.init(1, null);
+	} else {
+	    NativeGame.init(0, host_ip);
+	}
+	NativeGame.resize(width, height);
+	initialized = true;
     }
 
     public void onSurfaceChanged(GL10 gl, int w, int h) {
 	width = w;
 	height = h;
-	NativeGame.resize(width, height);
+	if (initialized) {
+	    NativeGame.resize(width, height);
+	}
     }
 
     public void onDrawFrame(GL10 gl) {

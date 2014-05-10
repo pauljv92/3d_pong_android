@@ -2,7 +2,11 @@
 #include "game.h"
 
 JNIEXPORT void JNICALL Java_com_honorsgame_NativeGame_init(
-    JNIEnv *env, jclass cls) {
+    JNIEnv *env, jclass cls, int is_host, jstring host_ip) {
+
+    is_host = is_host;
+    host_ip = strdup((*env)->GetStringUTFChars(env, host_ip, 0));
+
     logic_init();
     view_init();
 }
