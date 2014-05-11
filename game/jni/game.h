@@ -23,7 +23,6 @@ extern char *death_message;
 extern int is_host;
 extern char *ip;
 
-
 extern float player_x; // read only
 extern float player_y; // read only
 extern float enemy_x; // write me

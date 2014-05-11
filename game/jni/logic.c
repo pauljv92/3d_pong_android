@@ -9,6 +9,9 @@ const int GAME_PORT = 6969;
 int sockfd;
 struct sockaddr_in serv_addr;
 
+void host_init();
+void client_init();
+
 void logic_init() {
     if (is_host) {
 	host_init();
@@ -26,7 +29,7 @@ void host_init() {
     serv_addr.sin_family = AF_INET;
     serv_addr.sin_port = htons(GAME_PORT);
     serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
-    bind(sockfd,(struct sockaddr *)&servaddr,sizeof(servaddr));
+    bind(sockfd,(struct sockaddr *)&serv_addr,sizeof(serv_addr));
 
     // start a server thread
 }
@@ -36,8 +39,8 @@ void client_init() {
     memset(&serv_addr, 0, sizeof(struct sockaddr_in));
     serv_addr.sin_family = AF_INET;
     serv_addr.sin_port = htons(GAME_PORT);
-    if (inet_pton(AF_INET, ip, &serv_addr.sin_addr.s_addr) != 0) {
-	die("inet_pton");
+    if (inet_pton(AF_INET, ip, &serv_addr.sin_addr.s_addr) != 1) {
+	die2("inet_pton: %s", ip);
 	return;
     }
 
