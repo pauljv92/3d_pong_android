@@ -2,6 +2,12 @@ package com.honorsgame;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.nfc.*;
+import android.nfc.NfcAdapter.*;
+import android.os.*;
+import android.content.*;
+import android.widget.*;
+import android.util.*;
 import android.os.Bundle;
 import android.opengl.GLSurfaceView;
 import android.content.Context;
@@ -13,21 +19,39 @@ import android.nfc.NdefRecord;
 import android.nfc.NfcAdapter;
 import android.os.Parcelable;
 
-public class MainActivity extends Activity
+public class MainActivity extends Activity implements Handler.Callback
 {
-    private GLSurfaceView view;
-    private GameRenderer renderer;
+    GLSurfaceView view;
+    Handler handler;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
 	super.onCreate(savedInstanceState);
 
-	renderer = new GameRenderer();
+	String ip = getIntent().getStringExtra("ip");
+	handler = new Handler(Looper.getMainLooper(), this);
+
 	view = new GLSurfaceView(this);
 	view.setEGLContextClientVersion(1);
-	view.setRenderer(renderer);
+	view.setRenderer(new GameRenderer(handler, ip));
 	view.setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
 	setContentView(view);
+    }
+    
+    @Override
+    public boolean handleMessage(Message message) {
+	if (message.what == GameRenderer.GAME_DEAD) {
+	    // exit back to main screen
+	    String text = (String) message.obj;
+	    Toast.makeText(this, "Fuck: " + text, Toast.LENGTH_LONG).show();
+
+/*	    Intent intent = new Intent();
+	    intent.setComponent(
+		new ComponentName("com.honorsgame",
+				  "com.honorsgame.Beam"));
+				  startActivity(intent);*/
+	}
+	return true;
     }
 
     @Override
@@ -47,25 +71,6 @@ public class MainActivity extends Activity
     @Override
     protected void onResume() {
 	super.onResume();
-
-	if (!renderer.initialized) {
-	    Intent intent = getIntent();
-
-	    // Host Intent
-	    // todo
-
-	    // Client Intent
-	    if (NfcAdapter.ACTION_NDEF_DISCOVERED.equals(
-		    intent.getAction())) {
-		Parcelable[] rawMsgs = intent.getParcelableArrayExtra(
-		    NfcAdapter.EXTRA_NDEF_MESSAGES);
-		NdefMessage msg = (NdefMessage) rawMsgs[0];
-		String ip = new String(msg.getRecords()[0].getPayload());
-		Log.i("honorsgame", "received ip of " + ip);
-		renderer.init(ip);
-	    }
-	}
-
 	view.onResume();
     }
 

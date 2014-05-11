@@ -19,6 +19,9 @@ float real_enemy_y;
 void view_init() {
 }
 
+void view_cleanup() {
+}
+
 void view_resize(int w, int h) {
     screen_width = w;
     screen_height = h;

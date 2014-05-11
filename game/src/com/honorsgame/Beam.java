@@ -2,92 +2,114 @@ package com.honorsgame;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.nfc.NdefMessage;
-import android.nfc.NdefRecord;
-import android.nfc.NfcAdapter;
-import android.nfc.NfcAdapter.CreateNdefMessageCallback;
-import android.nfc.NfcAdapter.OnNdefPushCompleteCallback;
-import android.nfc.NfcEvent;
-import android.os.Bundle;
-import android.os.Parcelable;
-import android.widget.TextView;
-import android.widget.Toast;
+import android.nfc.*;
+import android.nfc.NfcAdapter.*;
+import android.os.*;
+import android.content.*;
+import android.widget.*;
+import android.util.*;
 import java.nio.charset.Charset;
 import android.net.wifi.WifiManager;
 import android.text.format.Formatter;
-import android.util.Log;
 
-public class Beam extends Activity implements CreateNdefMessageCallback, OnNdefPushCompleteCallback
+public class Beam extends Activity implements CreateNdefMessageCallback, 
+				   OnNdefPushCompleteCallback,
+				   Handler.Callback
 {
-    NfcAdapter mNfcAdapter;
+    final int MESSAGE_SENT = 69;
+    final int MESSAGE_RECEIVED = 96;
+
     TextView textView;
+    NfcAdapter nfcAdapter;
+    Handler handler;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+	// Set up UI
         setContentView(R.layout.beam);
-        TextView textView = (TextView) findViewById(R.id.textView);
+        textView = (TextView)findViewById(R.id.textView);
        
-        mNfcAdapter = NfcAdapter.getDefaultAdapter(this);
-        if (mNfcAdapter == null) {
-            Toast.makeText(this, "NFC is not available", Toast.LENGTH_LONG).show();
+	// Set up NFC
+        nfcAdapter = NfcAdapter.getDefaultAdapter(this);
+        if (nfcAdapter == null) {
+            Toast.makeText(this, "NFC is not available", 
+			   Toast.LENGTH_LONG).show();
             finish();
             return;
         }
+        nfcAdapter.setNdefPushMessageCallback(this, this);
+	nfcAdapter.setOnNdefPushCompleteCallback(this, this);
 
-        mNfcAdapter.setNdefPushMessageCallback(this, this);
-	mNfcAdapter.setOnNdefPushCompleteCallback(this, this);
+	// Set up message handler
+	handler = new Handler(Looper.getMainLooper(), this);
+    }
+
+    public void startGame(String ip) {
+	Intent intent = new Intent();
+	intent.putExtra("ip", ip);
+	intent.setComponent(
+	    new ComponentName("com.honorsgame",
+			      "com.honorsgame.MainActivity"));
+	startActivity(intent);
+    }
+    
+    @Override
+    public boolean handleMessage(Message message) {
+	switch (message.what) {
+	case MESSAGE_SENT:
+	    startGame(null);
+	case MESSAGE_RECEIVED:
+	    startGame((String) message.obj);
+	}
+	return true;
+    }
+
+    String getIPAddress() {
+	WifiManager wm = (WifiManager) getSystemService(WIFI_SERVICE);
+	return Formatter.formatIpAddress(
+	    wm.getConnectionInfo().getIpAddress());
     }
 
     @Override
     public NdefMessage createNdefMessage(NfcEvent event) {
-	WifiManager wm = (WifiManager) getSystemService(WIFI_SERVICE);
-	String ip = Formatter.formatIpAddress(wm.getConnectionInfo().getIpAddress());
-
-	NdefMessage msg = new NdefMessage(new NdefRecord[] 
-	    { 
-		NdefRecord.createMime("application/com.honorsgame.beam", ip.getBytes()),
+	NdefMessage msg = new NdefMessage(
+	    new NdefRecord[] {
+		NdefRecord.createMime("application/com.honorsgame.beam", 
+				      getIPAddress().getBytes()),
 		NdefRecord.createApplicationRecord("com.honorsgame")
 	    });
-
 	return msg;
     }
 
     @Override
     public void onNdefPushComplete(NfcEvent event) {
-        textView = (TextView) findViewById(R.id.textView);
-        textView.setText("sent that shit");
+	handler.sendEmptyMessage(MESSAGE_SENT);
     }
-    
 
-    @Override
-    public void onResume() 
-	{
-        super.onResume();
-
-        // Check to see that the Activity started due to an Android Beam
-        if (NfcAdapter.ACTION_NDEF_DISCOVERED.equals(getIntent().getAction())) {
-            processIntent(getIntent());
-        }
+    public String getNdefString(Intent intent) {
+        Parcelable[] rawMsgs = intent.getParcelableArrayExtra(
+	    NfcAdapter.EXTRA_NDEF_MESSAGES);
+        NdefMessage msg = (NdefMessage) rawMsgs[0];
+	return new String(msg.getRecords()[0].getPayload());
     }
 
     @Override
     public void onNewIntent(Intent intent) {
-        // onResume gets called after this to handle the intent
         setIntent(intent);
     }
 
-    /**
-     * Parses the NDEF Message from the intent and prints to the TextView
-     */
-    void processIntent(Intent intent) {
-	    
-        Parcelable[] rawMsgs = intent.getParcelableArrayExtra(
-	    NfcAdapter.EXTRA_NDEF_MESSAGES);
-        // only one message sent during the beam
-        NdefMessage msg = (NdefMessage) rawMsgs[0];
-        // record 0 contains the MIME type, record 1 is the AAR, if present
-        textView = (TextView) findViewById(R.id.textView);
-        textView.setText(new String(msg.getRecords()[0].getPayload()));
+    @Override
+    public void onResume() {
+	super.onResume();
+
+	Intent intent = getIntent();
+	if (NfcAdapter.ACTION_NDEF_DISCOVERED.equals(intent.getAction())) {
+
+	    Message message = handler.obtainMessage(MESSAGE_RECEIVED);
+	    message.obj = getNdefString(intent);
+	    handler.sendMessage(message);
+	}
     }
 }

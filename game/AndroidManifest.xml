@@ -18,7 +18,9 @@
 	    <data android:mimeType="application/com.honorsgame.beam" />
 	  </intent-filter>
         </activity>
-	<activity android:name="MainActivity">
+	<activity android:name="MainActivity"
+		  android:noHistory="true"
+		  android:screenOrientation="landscape">
 	</activity>
     </application>
     <uses-sdk android:minSdkVersion="10"/>
