@@ -1,0 +1,2 @@
+#!/bin/bash
+cc test.c -pthread -o _test && ./_test

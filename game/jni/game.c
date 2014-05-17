@@ -1,4 +1,3 @@
-#include <jni.h>
 #include "game.h"
 
 int game_state = 0;
@@ -27,6 +26,9 @@ void die(char *message) {
 	death_message = strdup(message);
     }
 }
+
+#ifndef NOT_ANDROID
+#include <jni.h>
 
 JNIEXPORT void JNICALL Java_com_honorsgame_NativeGame_init(
     JNIEnv *env, jclass cls, jstring j_ip) {
@@ -85,3 +87,5 @@ JNIEXPORT float JNICALL Java_com_honorsgame_NativeGame_playery(
     JNIEnv *env, jobject obj) {
     return real_player_y;
 }
+
+#endif

@@ -1,7 +1,10 @@
 #ifndef GAME_H
 #define GAME_H
 
+#ifndef NOT_ANDROID
 #include <android/log.h>
+#endif
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
