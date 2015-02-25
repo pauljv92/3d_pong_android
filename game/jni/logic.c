@@ -6,7 +6,7 @@
 #include <unistd.h>
 #include <pthread.h>
 
-const int GAME_PORT = 6969;
+const int GAME_PORT = 6967;
 int sockfd, connfd;
 struct sockaddr_in serv_addr, client;
 pthread_t worker;
